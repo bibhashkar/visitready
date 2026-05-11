@@ -6,7 +6,7 @@ function systemColor(status: MarkerStatus | null): string {
   if (status === "flagged") return "#dc2626";
   if (status === "borderline") return "#d97706";
   if (status === "normal") return "#16a34a";
-  return "#d1d5db";
+  return "#94a3b8";
 }
 
 interface BodyMapProps {
@@ -19,26 +19,27 @@ interface OrganProps {
   system: BodySystem;
   status: MarkerStatus | null;
   active: boolean;
-  onSystemClick: (s: BodySystem) => void;
-  children: React.ReactNode;
+  onClick: (s: BodySystem) => void;
   label: string;
+  children: React.ReactNode;
 }
 
-function Organ({ system, status, active, onSystemClick, children, label }: OrganProps) {
+function Organ({ system, status, active, onClick, label, children }: OrganProps) {
+  const color = systemColor(status);
   return (
     <g
-      onClick={() => onSystemClick(system)}
+      onClick={() => onClick(system)}
       style={{ cursor: "pointer" }}
-      opacity={active ? 1 : 0.85}
       role="button"
       aria-label={`${label} — ${status ?? "no data"}`}
     >
-      <title>{label}</title>
+      <title>{label}: {status ?? "no data"}</title>
       <g
-        fill={systemColor(status)}
-        fillOpacity={0.75}
-        stroke={active ? "#ffffff" : "none"}
-        strokeWidth={active ? 2 : 0}
+        fill={color}
+        fillOpacity={active ? 0.35 : 0.15}
+        stroke={color}
+        strokeWidth={active ? 2.5 : 1.8}
+        style={{ transition: "fill-opacity 0.15s, stroke-width 0.15s" }}
       >
         {children}
       </g>
@@ -47,152 +48,121 @@ function Organ({ system, status, active, onSystemClick, children, label }: Organ
 }
 
 export function BodyMap({ systemStatuses, onSystemClick, activeSystem }: BodyMapProps) {
-  const BODY_FILL = "#e5e7eb";
-
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-5">
       <svg
-        viewBox="0 0 200 380"
-        width="220"
-        height="418"
-        aria-label="Interactive body map showing organ systems by test result status"
+        viewBox="0 0 200 370"
+        width="190"
+        height="352"
+        aria-label="Interactive body map"
       >
-        {/* Body silhouette */}
-        <g fill={BODY_FILL}>
-          {/* Head */}
-          <ellipse cx="100" cy="35" rx="28" ry="32" />
-          {/* Neck */}
-          <rect x="88" y="65" width="24" height="25" rx="4" />
-          {/* Torso */}
-          <rect x="60" y="88" width="80" height="110" rx="12" />
-          {/* Left arm */}
-          <rect x="30" y="90" width="28" height="85" rx="10" />
-          {/* Right arm */}
-          <rect x="142" y="90" width="28" height="85" rx="10" />
-          {/* Hips */}
-          <rect x="60" y="195" width="80" height="40" rx="8" />
-          {/* Left leg */}
-          <rect x="62" y="232" width="32" height="110" rx="10" />
-          {/* Right leg */}
-          <rect x="106" y="232" width="32" height="110" rx="10" />
-        </g>
+        <defs>
+          <filter id="organ-glow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
 
-        {/* Organ overlays */}
+        {/* ── Body silhouette ── */}
+        {/* Head */}
+        <ellipse cx="100" cy="36" rx="26" ry="30"
+          fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="1.2" />
+        {/* Neck — overlaps head bottom + torso top to hide seam */}
+        <rect x="89" y="62" width="22" height="20" rx="3"
+          fill="#f1f5f9" />
+        {/* Torso */}
+        <path d="M58,76 Q57,72 64,70 L136,70 Q143,72 142,76 L145,190 Q145,196 138,196 L62,196 Q55,196 55,190 Z"
+          fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="1.2" />
+        {/* Left arm */}
+        <path d="M55,82 Q44,84 40,92 L34,172 Q33,178 38,179 L54,179 Q58,179 58,174 L60,96 Z"
+          fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="1.2" />
+        {/* Right arm */}
+        <path d="M145,82 Q156,84 160,92 L166,172 Q167,178 162,179 L146,179 Q142,179 142,174 L140,96 Z"
+          fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="1.2" />
+        {/* Hips — overlaps torso bottom */}
+        <path d="M58,186 L142,186 L148,212 Q149,218 143,218 L57,218 Q51,218 52,212 Z"
+          fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="1.2" />
+        {/* Left leg */}
+        <path d="M57,214 L98,214 L96,355 Q96,361 90,361 L63,361 Q57,361 57,355 Z"
+          fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="1.2" />
+        {/* Right leg */}
+        <path d="M102,214 L143,214 L143,355 Q143,361 137,361 L110,361 Q104,361 102,355 Z"
+          fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="1.2" />
 
-        {/* Thyroid */}
-        <Organ
-          system="thyroid"
-          status={systemStatuses.thyroid}
-          active={activeSystem === "thyroid"}
-          onSystemClick={onSystemClick}
-          label="Thyroid"
-        >
-          <ellipse cx="100" cy="76" rx="12" ry="8" />
+        {/* ── Organ indicators ── */}
+
+        {/* Thyroid — neck */}
+        <Organ system="thyroid" status={systemStatuses.thyroid}
+          active={activeSystem === "thyroid"} onClick={onSystemClick} label="Thyroid">
+          <ellipse cx="100" cy="74" rx="11" ry="7" />
         </Organ>
 
-        {/* Cardiovascular (heart) */}
-        <Organ
-          system="cardiovascular"
-          status={systemStatuses.cardiovascular}
-          active={activeSystem === "cardiovascular"}
-          onSystemClick={onSystemClick}
-          label="Cardiovascular"
-        >
-          <ellipse cx="90" cy="115" rx="18" ry="16" />
+        {/* Cardiovascular — left chest */}
+        <Organ system="cardiovascular" status={systemStatuses.cardiovascular}
+          active={activeSystem === "cardiovascular"} onClick={onSystemClick} label="Cardiovascular">
+          <circle cx="86" cy="110" r="13" />
         </Organ>
 
-        {/* Liver */}
-        <Organ
-          system="liver"
-          status={systemStatuses.liver}
-          active={activeSystem === "liver"}
-          onSystemClick={onSystemClick}
-          label="Liver"
-        >
-          <ellipse cx="107" cy="135" rx="14" ry="12" />
+        {/* Liver — right upper abdomen */}
+        <Organ system="liver" status={systemStatuses.liver}
+          active={activeSystem === "liver"} onClick={onSystemClick} label="Liver">
+          <ellipse cx="116" cy="124" rx="13" ry="10" />
         </Organ>
 
-        {/* Kidneys */}
-        <Organ
-          system="kidney"
-          status={systemStatuses.kidney}
-          active={activeSystem === "kidney"}
-          onSystemClick={onSystemClick}
-          label="Kidneys"
-        >
-          <ellipse cx="82" cy="158" rx="9" ry="11" />
-          <ellipse cx="118" cy="158" rx="9" ry="11" />
+        {/* Metabolic — centre abdomen */}
+        <Organ system="metabolic" status={systemStatuses.metabolic}
+          active={activeSystem === "metabolic"} onClick={onSystemClick} label="Metabolic">
+          <ellipse cx="96" cy="152" rx="14" ry="10" />
         </Organ>
 
-        {/* Metabolic (stomach/pancreas) */}
-        <Organ
-          system="metabolic"
-          status={systemStatuses.metabolic}
-          active={activeSystem === "metabolic"}
-          onSystemClick={onSystemClick}
-          label="Metabolic"
-        >
-          <ellipse cx="100" cy="165" rx="18" ry="12" />
+        {/* Kidneys — flanks */}
+        <Organ system="kidney" status={systemStatuses.kidney}
+          active={activeSystem === "kidney"} onClick={onSystemClick} label="Kidneys">
+          <ellipse cx="74" cy="158" rx="9" ry="12" />
+          <ellipse cx="120" cy="158" rx="9" ry="12" />
         </Organ>
 
-        {/* Blood — full-torso tint */}
-        <Organ
-          system="blood"
-          status={systemStatuses.blood}
-          active={activeSystem === "blood"}
-          onSystemClick={onSystemClick}
-          label="Blood"
-        >
-          <rect x="60" y="88" width="80" height="110" rx="12" fillOpacity={0.15} />
+        {/* Blood — full-torso subtle tint strip */}
+        <Organ system="blood" status={systemStatuses.blood}
+          active={activeSystem === "blood"} onClick={onSystemClick} label="Blood">
+          <rect x="58" y="76" width="84" height="112" rx="8" fillOpacity={0.08} strokeWidth={0} />
+          {/* small bone-marrow indicator dot */}
+          <circle cx="78" cy="260" r="8" />
+          <circle cx="122" cy="260" r="8" />
         </Organ>
-
-        {/* Vitamins — indicator below body */}
       </svg>
 
-      {/* Vitamins indicator (separate from silhouette) */}
+      {/* Vitamins — pill below body */}
       <button
         type="button"
         onClick={() => onSystemClick("vitamins")}
-        className="flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors"
+        className="flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-full border-2 transition-all"
         style={{
-          backgroundColor:
-            systemStatuses.vitamins
-              ? systemColor(systemStatuses.vitamins) + "22"
-              : "#f3f4f6",
-          borderColor:
-            systemStatuses.vitamins
-              ? systemColor(systemStatuses.vitamins)
-              : "#d1d5db",
-          color:
-            systemStatuses.vitamins
-              ? systemColor(systemStatuses.vitamins)
-              : "#6b7280",
-          outline: activeSystem === "vitamins" ? "2px solid #0d9488" : "none",
+          borderColor: systemColor(systemStatuses.vitamins),
+          color: systemColor(systemStatuses.vitamins),
+          backgroundColor: systemStatuses.vitamins
+            ? systemColor(systemStatuses.vitamins) + "18"
+            : "#f8fafc",
+          outline: activeSystem === "vitamins" ? `2px solid ${systemColor(systemStatuses.vitamins)}` : "none",
+          outlineOffset: "2px",
         }}
       >
-        <span
-          className="w-2 h-2 rounded-full"
-          style={{
-            backgroundColor: systemColor(systemStatuses.vitamins),
-          }}
-        />
+        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: systemColor(systemStatuses.vitamins) }} />
         Vitamins &amp; Nutrients
       </button>
 
       {/* Legend */}
       <div className="flex gap-4 text-xs text-gray-500">
-        <span className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
-          Normal
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-          Borderline
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-          Flagged
-        </span>
+        {(["normal", "borderline", "flagged"] as const).map((s) => (
+          <span key={s} className="flex items-center gap-1.5 capitalize">
+            <span className="w-2.5 h-2.5 rounded-full border-2"
+              style={{ borderColor: systemColor(s), backgroundColor: systemColor(s) + "33" }} />
+            {s}
+          </span>
+        ))}
       </div>
     </div>
   );

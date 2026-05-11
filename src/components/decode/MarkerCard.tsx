@@ -2,22 +2,28 @@ import type { LabMarker, MarkerStatus } from "@/lib/types";
 
 const STATUS_CONFIG: Record<
   MarkerStatus,
-  { dot: string; badge: string; label: string }
+  { borderColor: string; bg: string; badge: string; label: string; valueColor: string }
 > = {
   normal: {
-    dot: "bg-green-500",
-    badge: "bg-green-50 text-green-700",
+    borderColor: "#16a34a",
+    bg: "#f0fdf4",
+    badge: "bg-green-100 text-green-700",
     label: "Normal",
+    valueColor: "#15803d",
   },
   borderline: {
-    dot: "bg-amber-500",
-    badge: "bg-amber-50 text-amber-700",
+    borderColor: "#d97706",
+    bg: "#fffbeb",
+    badge: "bg-amber-100 text-amber-700",
     label: "Borderline",
+    valueColor: "#b45309",
   },
   flagged: {
-    dot: "bg-red-500",
-    badge: "bg-red-50 text-red-700",
+    borderColor: "#dc2626",
+    bg: "#fef2f2",
+    badge: "bg-red-100 text-red-700",
     label: "Flagged",
+    valueColor: "#b91c1c",
   },
 };
 
@@ -29,27 +35,36 @@ export function MarkerCard({ marker }: MarkerCardProps) {
   const cfg = STATUS_CONFIG[marker.status];
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm space-y-2">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className={`w-2.5 h-2.5 rounded-full shrink-0 mt-0.5 ${cfg.dot}`} />
+    <div
+      className="rounded-2xl border border-transparent shadow-sm overflow-hidden"
+      style={{ backgroundColor: cfg.bg, borderLeftColor: cfg.borderColor, borderLeftWidth: 4 }}
+    >
+      <div className="px-5 py-4 space-y-2">
+        {/* Header row */}
+        <div className="flex items-center justify-between gap-3">
           <span className="font-semibold text-gray-900 text-sm">{marker.name}</span>
-        </div>
-        <span className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${cfg.badge}`}>
-          {cfg.label}
-        </span>
-      </div>
-
-      <div className="ml-4.5 space-y-0.5 text-xs text-gray-500">
-        <p>
-          <span className="font-medium text-gray-700">
-            {marker.value} {marker.unit}
+          <span className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${cfg.badge}`}>
+            {cfg.label}
           </span>
-        </p>
-        <p>Reference: {marker.referenceRange}</p>
-      </div>
+        </div>
 
-      <p className="ml-4.5 text-sm text-gray-600 leading-relaxed">{marker.plainEnglish}</p>
+        {/* Value row */}
+        <div className="flex items-baseline gap-3">
+          <span className="text-2xl font-bold" style={{ color: cfg.valueColor }}>
+            {marker.value}
+          </span>
+          <span className="text-sm text-gray-500">{marker.unit}</span>
+          <span className="text-xs text-gray-400 ml-auto">
+            Ref: {marker.referenceRange}
+          </span>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-black/5" />
+
+        {/* Plain English */}
+        <p className="text-sm text-gray-700 leading-relaxed">{marker.plainEnglish}</p>
+      </div>
     </div>
   );
 }
