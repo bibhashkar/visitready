@@ -1,0 +1,193 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { AlertTriangle } from "lucide-react";
+import { BodyMap } from "@/components/decode/BodyMap";
+import { MarkerCard } from "@/components/decode/MarkerCard";
+import { DoctorQuestions } from "@/components/decode/DoctorQuestions";
+import { Disclaimer } from "@/components/layout/Disclaimer";
+import type { DecodeResult, BodySystem, MarkerStatus } from "@/lib/types";
+
+const SYSTEM_LABELS: Record<BodySystem, string> = {
+  cardiovascular: "Cardiovascular",
+  metabolic: "Metabolic",
+  liver: "Liver",
+  kidney: "Kidney",
+  blood: "Blood",
+  thyroid: "Thyroid",
+  vitamins: "Vitamins & Nutrients",
+  other: "Other",
+};
+
+function worstStatus(statuses: MarkerStatus[]): MarkerStatus | null {
+  if (statuses.includes("flagged")) return "flagged";
+  if (statuses.includes("borderline")) return "borderline";
+  if (statuses.includes("normal")) return "normal";
+  return null;
+}
+
+function StatCard({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: number;
+  color: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm text-center">
+      <p className={`text-2xl font-bold ${color}`}>{value}</p>
+      <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+    </div>
+  );
+}
+
+export default function DecodeResultsPage() {
+  const router = useRouter();
+  const [result, setResult] = useState<DecodeResult | null>(null);
+  const [activeSystem, setActiveSystem] = useState<BodySystem | undefined>();
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem("visitready_decode_result");
+    if (!raw) {
+      router.replace("/decode");
+      return;
+    }
+    try {
+      setResult(JSON.parse(raw) as DecodeResult);
+    } catch {
+      router.replace("/decode");
+    }
+  }, [router]);
+
+  if (!result) return null;
+
+  // Build system statuses map
+  const ALL_SYSTEMS: BodySystem[] = [
+    "cardiovascular",
+    "metabolic",
+    "liver",
+    "kidney",
+    "blood",
+    "thyroid",
+    "vitamins",
+    "other",
+  ];
+
+  const systemStatuses = Object.fromEntries(
+    ALL_SYSTEMS.map((sys) => {
+      const systemMarkers = result.markers.filter((m) => m.system === sys);
+      return [sys, worstStatus(systemMarkers.map((m) => m.status))];
+    })
+  ) as Record<BodySystem, MarkerStatus | null>;
+
+  const groupedMarkers = ALL_SYSTEMS.map((sys) => ({
+    system: sys,
+    markers: result.markers.filter((m) => m.system === sys),
+  })).filter((g) => g.markers.length > 0);
+
+  const handleSystemClick = (system: BodySystem) => {
+    setActiveSystem(system);
+    const el = sectionRefs.current[system];
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  return (
+    <div className="max-w-5xl mx-auto w-full px-4 py-10">
+      {/* Header */}
+      <div className="mb-8 space-y-1">
+        <p className="text-xs font-medium uppercase tracking-widest text-teal-600">
+          Results Decoder
+        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+          Your lab results explained
+        </h1>
+        {result.contextUsed && (
+          <span className="inline-block text-xs bg-teal-50 text-teal-700 px-3 py-1 rounded-full font-medium">
+            Personalized interpretation — based on your health profile
+          </span>
+        )}
+      </div>
+
+      {/* Missing tests banner */}
+      {result.missingTests && result.missingTests.length > 0 && (
+        <div className="mb-6 rounded-2xl bg-amber-50 border border-amber-100 p-4 flex gap-3">
+          <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+          <div className="text-sm text-amber-800">
+            <p className="font-medium mb-1">Tests from your profile not found in results:</p>
+            <ul className="list-disc list-inside space-y-0.5">
+              {result.missingTests.map((t, i) => (
+                <li key={i}>{t}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* Stats row */}
+      <div className="grid grid-cols-4 gap-3 mb-8">
+        <StatCard label="Total markers" value={result.summary.totalMarkers} color="text-gray-900" />
+        <StatCard label="Flagged" value={result.summary.flagged} color="text-red-600" />
+        <StatCard label="Borderline" value={result.summary.borderline} color="text-amber-600" />
+        <StatCard label="Normal" value={result.summary.normal} color="text-green-600" />
+      </div>
+
+      {/* Two-column layout */}
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Left: Body map (sticky on desktop) */}
+        <aside className="lg:w-64 shrink-0">
+          <div className="lg:sticky lg:top-20">
+            <BodyMap
+              systemStatuses={systemStatuses}
+              onSystemClick={handleSystemClick}
+              activeSystem={activeSystem}
+            />
+          </div>
+        </aside>
+
+        {/* Right: Marker cards */}
+        <div className="flex-1 space-y-10">
+          {groupedMarkers.map(({ system, markers }) => (
+            <section
+              key={system}
+              ref={(el) => { sectionRefs.current[system] = el; }}
+              className="space-y-3 scroll-mt-20"
+            >
+              <h2 className="text-base font-semibold text-gray-900 border-b border-gray-100 pb-2">
+                {SYSTEM_LABELS[system]}
+              </h2>
+              {markers.map((marker, i) => (
+                <MarkerCard key={i} marker={marker} />
+              ))}
+            </section>
+          ))}
+
+          {/* Doctor questions */}
+          <DoctorQuestions questions={result.doctorQuestions} />
+
+          {/* Actions */}
+          <div className="flex flex-wrap gap-3 pt-2">
+            <Link
+              href="/prep"
+              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-6 py-3 font-medium transition-colors text-sm"
+            >
+              Prepare for another visit →
+            </Link>
+            <Link
+              href="/decode"
+              className="inline-flex items-center gap-2 border border-gray-200 hover:bg-gray-50 rounded-xl px-6 py-3 font-medium transition-colors text-sm text-gray-700"
+            >
+              Decode another report
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <Disclaimer />
+    </div>
+  );
+}
