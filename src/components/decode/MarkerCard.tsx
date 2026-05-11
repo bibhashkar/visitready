@@ -50,12 +50,12 @@ export function MarkerCard({ marker }: MarkerCardProps) {
 
         {/* Value row */}
         <div className="flex items-baseline gap-3">
-          <span className="text-2xl font-bold" style={{ color: cfg.valueColor }}>
+          <span className="text-2xl font-bold font-mono tracking-tight" style={{ color: cfg.valueColor }}>
             {marker.value}
           </span>
-          <span className="text-sm text-gray-500">{marker.unit}</span>
-          <span className="text-xs text-gray-400 ml-auto">
-            Ref: {marker.referenceRange}
+          <span className="text-sm text-gray-500 font-mono">{marker.unit}</span>
+          <span className="text-xs text-gray-400 font-mono ml-auto">
+            ref {marker.referenceRange}
           </span>
         </div>
 

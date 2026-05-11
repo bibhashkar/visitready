@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, AlertCircle, CheckCircle2, FlaskConical } from "lucide-react";
 import { BodyMap } from "@/components/decode/BodyMap";
 import { MarkerCard } from "@/components/decode/MarkerCard";
 import { DoctorQuestions } from "@/components/decode/DoctorQuestions";
@@ -28,19 +28,38 @@ function worstStatus(statuses: MarkerStatus[]): MarkerStatus | null {
   return null;
 }
 
-function StatCard({
-  label,
-  value,
-  color,
-}: {
+interface StatCardProps {
   label: string;
   value: number;
-  color: string;
-}) {
+  total?: number;
+  icon: React.ReactNode;
+  bg: string;
+  valueColor: string;
+  barColor?: string;
+}
+
+function StatCard({ label, value, total, icon, bg, valueColor, barColor }: StatCardProps) {
+  const pct = total && total > 0 ? Math.round((value / total) * 100) : null;
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm text-center">
-      <p className={`text-2xl font-bold ${color}`}>{value}</p>
-      <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+    <div className={`rounded-2xl border border-transparent p-4 shadow-sm flex flex-col gap-2 ${bg}`}>
+      <div className="flex items-center justify-between">
+        {icon}
+        {pct !== null && (
+          <span className="text-xs font-medium" style={{ color: valueColor }}>
+            {pct}%
+          </span>
+        )}
+      </div>
+      <p className={`text-2xl font-bold`} style={{ color: valueColor }}>{value}</p>
+      <p className="text-xs text-gray-500 font-medium">{label}</p>
+      {pct !== null && barColor && (
+        <div className="h-1 rounded-full bg-black/10 overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all"
+            style={{ width: `${pct}%`, backgroundColor: barColor }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -99,11 +118,11 @@ export default function DecodeResultsPage() {
   return (
     <div className="max-w-5xl mx-auto w-full px-4 py-10">
       {/* Header */}
-      <div className="mb-8 space-y-1">
-        <p className="text-xs font-medium uppercase tracking-widest text-teal-600">
+      <div className="mb-8 space-y-2">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-teal-600">
           Results Decoder
         </p>
-        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
           Your lab results explained
         </h1>
         {result.contextUsed && (
@@ -129,11 +148,41 @@ export default function DecodeResultsPage() {
       )}
 
       {/* Stats row */}
-      <div className="grid grid-cols-4 gap-3 mb-8">
-        <StatCard label="Total markers" value={result.summary.totalMarkers} color="text-gray-900" />
-        <StatCard label="Flagged" value={result.summary.flagged} color="text-red-600" />
-        <StatCard label="Borderline" value={result.summary.borderline} color="text-amber-600" />
-        <StatCard label="Normal" value={result.summary.normal} color="text-green-600" />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        <StatCard
+          label="Total markers"
+          value={result.summary.totalMarkers}
+          icon={<FlaskConical className="w-4 h-4 text-gray-400" />}
+          bg="bg-white border-gray-100"
+          valueColor="#111827"
+        />
+        <StatCard
+          label="Flagged"
+          value={result.summary.flagged}
+          total={result.summary.totalMarkers}
+          icon={<AlertTriangle className="w-4 h-4 text-red-500" />}
+          bg="bg-red-50"
+          valueColor="#dc2626"
+          barColor="#dc2626"
+        />
+        <StatCard
+          label="Borderline"
+          value={result.summary.borderline}
+          total={result.summary.totalMarkers}
+          icon={<AlertCircle className="w-4 h-4 text-amber-500" />}
+          bg="bg-amber-50"
+          valueColor="#d97706"
+          barColor="#d97706"
+        />
+        <StatCard
+          label="Normal"
+          value={result.summary.normal}
+          total={result.summary.totalMarkers}
+          icon={<CheckCircle2 className="w-4 h-4 text-green-500" />}
+          bg="bg-green-50"
+          valueColor="#16a34a"
+          barColor="#16a34a"
+        />
       </div>
 
       {/* Two-column layout */}
@@ -157,9 +206,12 @@ export default function DecodeResultsPage() {
               ref={(el) => { sectionRefs.current[system] = el; }}
               className="space-y-3 scroll-mt-20"
             >
-              <h2 className="text-base font-semibold text-gray-900 border-b border-gray-100 pb-2">
-                {SYSTEM_LABELS[system]}
-              </h2>
+              <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400">
+                  {SYSTEM_LABELS[system]}
+                </h2>
+                <div className="flex-1 h-px bg-gray-100" />
+              </div>
               {markers.map((marker, i) => (
                 <MarkerCard key={i} marker={marker} />
               ))}

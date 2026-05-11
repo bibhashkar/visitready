@@ -26,11 +26,11 @@ export default function PrepResultsPage() {
 
   return (
     <div className="max-w-2xl mx-auto w-full px-4 py-10">
-      <div className="mb-8 space-y-1">
-        <p className="text-xs font-medium uppercase tracking-widest text-teal-600">
+      <div className="mb-8 space-y-2">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-teal-600">
           Pre-Visit Prep · Results
         </p>
-        <h1 className="text-2xl font-semibold tracking-tight text-gray-900">
+        <h1 className="text-3xl font-bold text-gray-900">
           Your personalized panel
         </h1>
         {profile && (

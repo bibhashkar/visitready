@@ -5,6 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
   --color-brand-50: #f0fdfa;
   --color-brand-100: #ccfbf1;
   --color-brand-500: #14b8a6;
@@ -135,8 +137,16 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
   }
   html {
     @apply font-sans;
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.03em;
+    line-height: 1.15;
   }
 }

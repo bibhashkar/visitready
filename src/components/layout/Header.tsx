@@ -19,7 +19,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
       <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-semibold text-gray-900">
+        <Link href="/" className="flex items-center gap-2 font-bold tracking-tight text-gray-900">
           <Activity className="w-5 h-5 text-teal-600" />
           <span>
             Visit<span className="text-teal-600">Ready</span>

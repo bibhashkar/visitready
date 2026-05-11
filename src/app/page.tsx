@@ -8,10 +8,10 @@ export default function Home() {
       <div className="max-w-4xl w-full space-y-10">
         {/* Hero */}
         <div className="text-center space-y-4">
-          <span className="inline-block text-xs font-medium tracking-widest uppercase text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
+          <span className="inline-block text-[11px] font-semibold tracking-[0.12em] uppercase text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
             Health Innovation · AI-Powered
           </span>
-          <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight text-gray-900 leading-tight">
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight">
             Know what to ask.{" "}
             <span className="bg-linear-to-r from-teal-600 to-emerald-600 bg-clip-text text-transparent">
               Understand what came back.
