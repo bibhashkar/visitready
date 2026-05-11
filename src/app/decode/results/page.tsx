@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, AlertCircle, CheckCircle2, FlaskConical } from "lucide-react";
+import { SystemIcon, SYSTEM_COLORS } from "@/components/decode/SystemIcon";
 import { BodyMap } from "@/components/decode/BodyMap";
 import { MarkerCard } from "@/components/decode/MarkerCard";
 import { DoctorQuestions } from "@/components/decode/DoctorQuestions";
@@ -20,6 +21,7 @@ const SYSTEM_LABELS: Record<BodySystem, string> = {
   vitamins: "Vitamins & Nutrients",
   other: "Other",
 };
+
 
 function worstStatus(statuses: MarkerStatus[]): MarkerStatus | null {
   if (statuses.includes("flagged")) return "flagged";
@@ -206,11 +208,12 @@ export default function DecodeResultsPage() {
               ref={(el) => { sectionRefs.current[system] = el; }}
               className="space-y-3 scroll-mt-20"
             >
-              <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-400">
+              <div className="flex items-center gap-3 pb-3 border-b border-gray-300">
+                <SystemIcon system={system} className="w-8 h-8 shrink-0" />
+                <h2 className="text-sm font-semibold uppercase tracking-[0.1em] text-gray-500">
                   {SYSTEM_LABELS[system]}
                 </h2>
-                <div className="flex-1 h-px bg-gray-100" />
+                <div className="flex-1 h-px bg-gray-300" />
               </div>
               {markers.map((marker, i) => (
                 <MarkerCard key={i} marker={marker} />
